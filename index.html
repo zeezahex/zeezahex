@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ZeezaAI Battle Royale 2D</title>
+  <style>
+    body { margin: 0; background: #222; }
+    canvas { display: block; margin: auto; background: #333; }
+    #hud {
+      position: absolute; top: 10px; left: 10px;
+      color: white; font-family: Arial; font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div id="hud">Health: 100</div>
+  <canvas id="gameCanvas" width="600" height="600"></canvas>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const hud = document.getElementById("hud");
+
+    // Player
+    const player = { x: 300, y: 300, size: 15, speed: 3, health: 100 };
+
+    // Safe zone
+    let safeZone = { x: 300, y: 300, radius: 250, shrinkRate: 0.05 };
+
+    // Loot items
+    const loot = [];
+    for (let i = 0; i < 10; i++) {
+      loot.push({
+        x: Math.random() * 580 + 10,
+        y: Math.random() * 580 + 10,
+        size: 8,
+        type: "health" // could expand to weapons later
+      });
+    }
+
+    // Bullets
+    const bullets = [];
+
+    // Controls
+    const keys = {};
+    window.addEventListener("keydown", e => keys[e.key] = true);
+    window.addEventListener("keyup", e => keys[e.key] = false);
+
+    canvas.addEventListener("click", e => {
+      // Shoot bullet toward mouse click
+      const rect = canvas.getBoundingClientRect();
+      const targetX = e.clientX - rect.left;
+      const targetY = e.clientY - rect.top;
+      const angle = Math.atan2(targetY - player.y, targetX - player.x);
+      bullets.push({
+        x: player.x, y: player.y,
+        dx: Math.cos(angle) * 5,
+        dy: Math.sin(angle) * 5,
+        size: 5
+      });
+    });
+
+    function update() {
+      // Player movement
+      if (keys["ArrowUp"]) player.y -= player.speed;
+      if (keys["ArrowDown"]) player.y += player.speed;
+      if (keys["ArrowLeft"]) player.x -= player.speed;
+      if (keys["ArrowRight"]) player.x += player.speed;
+
+      // Shrink safe zone
+      if (safeZone.radius > 50) {
+        safeZone.radius -= safeZone.shrinkRate;
+      }
+
+      // Damage if outside safe zone
+      const dist = Math.hypot(player.x - safeZone.x, player.y - safeZone.y);
+      if (dist > safeZone.radius) {
+        player.health -= 0.1; // slow damage
+      }
+
+      // Loot pickup
+      for (let i = loot.length - 1; i >= 0; i--) {
+        const item = loot[i];
+        if (Math.abs(player.x - item.x) < player.size &&
+            Math.abs(player.y - item.y) < player.size) {
+          if (item.type === "health") {
+            player.health = Math.min(100, player.health + 20);
+          }
+          loot.splice(i, 1); // remove item
+        }
+      }
+
+      // Update bullets
+      bullets.forEach(b => {
+        b.x += b.dx;
+        b.y += b.dy;
+      });
+
+      // HUD
+      hud.textContent = "Health: " + Math.floor(player.health);
+
+      // Win/Lose condition
+      if (player.health <= 0) {
+        alert("Game Over! You died.");
+        document.location.reload();
+      }
+      if (safeZone.radius <= 50 && player.health > 0) {
+        alert("You survived! Winner!");
+        document.location.reload();
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Safe zone
+      ctx.beginPath();
+      ctx.arc(safeZone.x, safeZone.y, safeZone.radius, 0, Math.PI * 2);
+      ctx.strokeStyle = "lime";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      // Player
+      ctx.fillStyle = "cyan";
+      ctx.fillRect(player.x - player.size/2, player.y - player.size/2, player.size, player.size);
+
+      // Loot
+      ctx.fillStyle = "yellow";
+      loot.forEach(item => {
+        ctx.fillRect(item.x - item.size/2, item.y - item.size/2, item.size, item.size);
+      });
+
+      // Bullets
+      ctx.fillStyle = "red";
+      bullets.forEach(b => {
+        ctx.fillRect(b.x - b.size/2, b.y - b.size/2, b.size, b.size);
+      });
+    }
+
+    function gameLoop() {
+      update();
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop();
+  </script>
+</body>
+</html>
