@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Goku Review</title>
+  <style>
+    body { font-family:Poppins, sans-serif; background:#0f172a; color:#f1f5f9; text-align:center; }
+    .stars span { font-size:2em; cursor:pointer; }
+    textarea { width:60%; height:100px; margin-top:20px; }
+    .btn { background:#38bdf8; color:#0f172a; padding:10px 20px; border:none; border-radius:5px; cursor:pointer; }
+  </style>
+</head>
+<body>
+  <h1>Dragon Ball Super - Goku</h1>
+  <img src="goku.png" alt="Goku" width="200">
+  <p>The Saiyan warrior who never stops training and protecting Earth.</p>
+  <h2>Rate Goku</h2>
+  <div class="stars" id="stars">
+    <span onclick="rate(1)">⭐</span><span onclick="rate(2)">⭐</span><span onclick="rate(3)">⭐</span><span onclick="rate(4)">⭐</span><span onclick="rate(5)">⭐</span>
+  </div>
+  <p id="rating">Your rating: 0</p>
+  <h2>Write a Review</h2>
+  <textarea placeholder="Share your thoughts..."></textarea><br>
+  <button class="btn">Submit Review</button>
+  <script>function rate(stars){document.getElementById('rating').innerText="Your rating: "+stars;}</script>
+</body>
+</html>
